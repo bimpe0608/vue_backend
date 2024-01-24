@@ -34,6 +34,19 @@ connectToDb()
     console.log("Error starting server: ", err);
   });
 
+const updateLesson = (lessonId, spaces) => {
+  const db = getDb();
+  const collection = db.collection("lesson");
+
+  collection.findOneAndUpdate(
+    { _id: ObjectId(lessonId) },
+    { $inc: { spaces: -spaces } },
+    (err, result) => {
+      if (err) throw err;
+    }
+  );
+};
+
 app.get("/lessons", async (req, res, next) => {
   try {
     const searchText = req.query.search;
