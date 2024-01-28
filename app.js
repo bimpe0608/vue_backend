@@ -1,14 +1,20 @@
 const express = require("express");
-const bodyParser = require("body-parser");
+// const bodyParser = require('body-parser');
 const { ObjectId } = require("mongodb");
 const { connectToDb, getDb } = require("./db");
 const logger = require("./logger");
+const ApiError = require("./utils/ApiError");
 
 const app = express();
 
-app.use(express.static("public"));
+//body parser goes first
+app.use(express.json());
+// "/public" is the route used to access the public folder
+app.use("/public", express.static("public"));
+
+//logger comes below static config and body parser because the first 2 middlewares are directly from express
 app.use(logger);
-app.use(bodyParser.json());
+
 app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
@@ -19,9 +25,19 @@ app.use(function (req, res, next) {
   next();
 });
 
+//wild card for not found routes
+app.all("*", (req, res, next) => {
+  return next(new ApiError("Route not found or has been changed", 404));
+});
+
+//global error handler
 app.use((err, req, res, next) => {
-  console.log("Error: ", err);
-  res.status(500).send("An error occurred, please try again later.");
+  console.log("Error Stack: ", err.stack);
+
+  //returning my converted error contructor as a response
+  return res.status(err?.statusCode || 500).json({
+    message: err?.message || "An error occurred, please try again later.",
+  });
 });
 
 connectToDb()
@@ -77,7 +93,6 @@ app.post("/orders", async (req, res, next) => {
 
     const db = getDb();
     const collection = db.collection("order");
-    console.log("taking timeeee", db);
 
     collection.insertOne(order, (err, result) => {
       if (err) throw err;
