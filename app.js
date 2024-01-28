@@ -7,12 +7,10 @@ const ApiError = require("./utils/ApiError");
 
 const app = express();
 
-//body parser goes first
 app.use(express.json());
 // "/public" is the route used to access the public folder
 app.use("/public", express.static("public"));
 
-//logger comes below static config and body parser because the first 2 middlewares are directly from express
 app.use(logger);
 
 app.use(function (req, res, next) {
@@ -22,14 +20,21 @@ app.use(function (req, res, next) {
     "Access-Control-Allow-Headers",
     "Origin, X-Requested-With, Content-Type, Accept"
   );
-  next();
+
+  // Intercept OPTIONS method
+  if (req.method === "OPTIONS") {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+  // next();
 });
 
 //global error handler
 app.use((err, req, res, next) => {
   console.log("Error Stack: ", err.stack);
 
-  //returning my converted error contructor as a response
+  //returning converted error contructor as a response
   return res.status(err?.statusCode || 500).json({
     message: err?.message || "An error occurred, please try again later.",
   });
