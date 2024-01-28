@@ -25,11 +25,6 @@ app.use(function (req, res, next) {
   next();
 });
 
-//wild card for not found routes
-app.all("*", (req, res, next) => {
-  return next(new ApiError("Route not found or has been changed", 404));
-});
-
 //global error handler
 app.use((err, req, res, next) => {
   console.log("Error Stack: ", err.stack);
@@ -113,4 +108,9 @@ app.put("/lessons/:id", (req, res) => {
   updateLesson(lessonId, spaces);
 
   res.send("Lesson updated successfully");
+});
+
+//wild card for not found routes
+app.all("*", (req, res, next) => {
+  return next(new ApiError("Route not found or has been changed", 404));
 });
