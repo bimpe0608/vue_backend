@@ -8,6 +8,7 @@ const ApiError = require("./utils/ApiError");
 const app = express();
 
 app.use(express.json());
+
 // "/public" is the route used to access the public folder
 app.use("/public", express.static("public"));
 
@@ -55,7 +56,7 @@ const updateLesson = (lessonId, spaces) => {
   const collection = db.collection("lesson");
 
   collection.findOneAndUpdate(
-    { _id: ObjectId(lessonId) },
+    { _id: new ObjectId(lessonId) },
     { $inc: { spaces: -spaces } },
     (err, result) => {
       if (err) throw err;
@@ -94,13 +95,11 @@ app.post("/orders", async (req, res, next) => {
     const db = getDb();
     const collection = db.collection("order");
 
-    collection.insertOne(order, (err, result) => {
-      if (err) throw err;
-
-      // updateLesson(order.lesson_id, order.spaces);
-
-      res.json(result);
-    });
+    const result = await collection.insertOne(order);
+    if (result["acknowledged"]) {
+      updateLesson(order.lesson_id, order.spaces);
+    }
+    res.json(result);
   } catch (err) {
     next(err);
   }
