@@ -8,6 +8,7 @@ const ApiError = require("./utils/ApiError");
 const app = express();
 
 app.use(express.json());
+
 // "/public" is the route used to access the public folder
 app.use("/public", express.static("public"));
 
