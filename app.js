@@ -50,13 +50,13 @@ connectToDb()
     console.log("Error starting server: ", err);
   });
 
-const updateLesson = (lessonId, spaces) => {
+const updateLesson = (lessonId, availability) => {
   const db = getDb();
   const collection = db.collection("lesson");
 
   collection.findOneAndUpdate(
-    { _id: ObjectId(lessonId) },
-    { $inc: { spaces: -spaces } },
+    { _id: new ObjectId(lessonId) },
+    { $set: { availability: availability } },
     (err, result) => {
       if (err) throw err;
     }
@@ -94,13 +94,9 @@ app.post("/orders", async (req, res, next) => {
     const db = getDb();
     const collection = db.collection("order");
 
-    collection.insertOne(order, (err, result) => {
-      if (err) throw err;
-
-      // updateLesson(order.lesson_id, order.spaces);
-
-      res.json(result);
-    });
+    const result = collection.insertOne(order);
+    // updateLesson(order.lesson_id, order.spaces);
+    res.send(res.json(result));
   } catch (err) {
     next(err);
   }
@@ -108,9 +104,9 @@ app.post("/orders", async (req, res, next) => {
 
 app.put("/lessons/:id", (req, res) => {
   const lessonId = req.params.id;
-  const spaces = req.body.spaces;
+  const availability = req.body.availability;
 
-  updateLesson(lessonId, spaces);
+  updateLesson(lessonId, availability);
 
   res.send("Lesson updated successfully");
 });
